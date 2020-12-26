@@ -1,23 +1,54 @@
 package dev.me.forum.Controller;
 
-import java.util.Arrays;
+import java.net.URI;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import dev.me.forum.Controller.dto.TopicoDto;
-import dev.me.forum.modelo.Curso;
+import dev.me.forum.Controller.form.TopicoForm;
 import dev.me.forum.modelo.Topico;
+import dev.me.forum.repository.CursoRepository;
+import dev.me.forum.repository.TopicoRepository;
 
 @RestController
+@RequestMapping("/topicos")
 public class TopicosController {
 
-  @RequestMapping("/topicos")
-  public List<TopicoDto> lista() {
-    Topico topico = new Topico("Dúvida", "Duvida com springframework", new Curso("Spring", "Programação"));
+  @Autowired
+  private TopicoRepository topicoRepository;
 
-    return TopicoDto.convert(Arrays.asList(topico, topico, topico));
+  @Autowired
+  private CursoRepository cursoRepository;
+
+  @GetMapping
+  public List<TopicoDto> lista(String nomeCurso) {
+    if (nomeCurso == null) {
+
+      List<Topico> topicos = topicoRepository.findAll();
+      return TopicoDto.convert(topicos);
+    } else {
+
+      List<Topico> topicos = topicoRepository.findByCursoNome(nomeCurso);
+      return TopicoDto.convert(topicos);
+    }
+  }
+
+  @PostMapping
+  public ResponseEntity<TopicoDto> cadastrar(@RequestBody TopicoForm form, UriComponentsBuilder uriBuilder) {
+
+    Topico topico = form.convert(cursoRepository);
+    topicoRepository.save(topico);
+
+    URI uri = uriBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
+    return ResponseEntity.created(uri).body(new TopicoDto(topico));
   }
 
 }
