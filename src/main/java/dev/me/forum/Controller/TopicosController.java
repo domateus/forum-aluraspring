@@ -1,14 +1,14 @@
 package dev.me.forum.Controller;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -44,6 +44,7 @@ public class TopicosController {
   private CursoRepository cursoRepository;
 
   @GetMapping
+  @Cacheable(value = "listaDeTopicos")
   public Page<TopicoDto> lista(@RequestParam(required = false) String nomeCurso,
       @PageableDefault(sort = "id", direction = Direction.DESC, page = 0, size = 10) Pageable pagination) {
 
@@ -60,6 +61,7 @@ public class TopicosController {
 
   @PostMapping
   @Transactional
+  @CacheEvict(value = "listaDeTopicos", allEntries = true)
   public ResponseEntity<TopicoDto> cadastrar(@RequestBody @Valid TopicoForm form, UriComponentsBuilder uriBuilder) {
 
     Topico topico = form.convert(cursoRepository);
@@ -81,6 +83,7 @@ public class TopicosController {
 
   @PutMapping("/{id}")
   @Transactional
+  @CacheEvict(value = "listaDeTopicos", allEntries = true)
   public ResponseEntity<TopicoDto> update(@PathVariable Long id, @RequestBody @Valid UpdateTopicoForm form) {
     Optional<Topico> optional = topicoRepository.findById(id);
     if (optional.isPresent()) {
@@ -93,6 +96,7 @@ public class TopicosController {
 
   @DeleteMapping("/{id}")
   @Transactional
+  @CacheEvict(value = "listaDeTopicos", allEntries = true)
   public ResponseEntity<?> remove(@PathVariable Long id) {
     Optional<Topico> optional = topicoRepository.findById(id);
     if (optional.isPresent()) {
