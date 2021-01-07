@@ -39,12 +39,14 @@ public class SecurityConfigs extends WebSecurityConfigurerAdapter {
   // Configurações de recursos estáticos
   @Override
   public void configure(WebSecurity web) throws Exception {
-
+    web.ignoring().antMatchers("/**.html", "/v2/api-docs", "/webjars/**", "/configuration/**", "/swagger-resources/**");
   }
 
   // Configurações de autorização
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    http.authorizeRequests().antMatchers(HttpMethod.GET, "/actuator/**").permitAll();
+
     http.authorizeRequests().antMatchers(HttpMethod.GET, "/topicos").permitAll()
         .antMatchers(HttpMethod.GET, "/topicos/*").permitAll().antMatchers(HttpMethod.POST, "/auth").permitAll()
         .antMatchers("/h2-console/**").permitAll().anyRequest().authenticated().and().csrf().disable()
